@@ -1,0 +1,474 @@
+CREATE DATABASE LivrariaDB;
+USE LivrariaDB;
+
+
+CREATE TABLE Editoras (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(100) NOT NULL,
+    Cidade VARCHAR(50),
+    País VARCHAR(50)
+);
+
+CREATE TABLE Autores (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(100) NOT NULL,
+    Nacionalidade VARCHAR(50),
+    Data_Nascimento DATE
+);
+
+CREATE TABLE Livros (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    Título VARCHAR(150) NOT NULL,
+    Gênero VARCHAR(50),
+    Ano INT,
+    Preço DECIMAL(10,2),
+    ISBN VARCHAR(20),
+    ID_Editora INT,
+    ID_Autor INT,
+    FOREIGN KEY (ID_Editora) REFERENCES Editoras(ID),
+    FOREIGN KEY (ID_Autor) REFERENCES Autores(ID)
+);
+
+CREATE TABLE Clientes (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(100) NOT NULL,
+    Email VARCHAR(100),
+    Telefone VARCHAR(20),
+    Endereço VARCHAR(200)
+);
+
+CREATE TABLE Vendas (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    Data DATE NOT NULL,
+    ID_Cliente INT,
+    ID_Livro INT,
+    Quantidade INT,
+    Total DECIMAL(10,2),
+    FOREIGN KEY (ID_Cliente) REFERENCES Clientes(ID),
+    FOREIGN KEY (ID_Livro) REFERENCES Livros(ID)
+);
+
+CREATE TABLE Estoque (
+    ID_Livro INT PRIMARY KEY,
+    Quantidade INT NOT NULL,
+    Localização VARCHAR(100),
+    FOREIGN KEY (ID_Livro) REFERENCES Livros(ID)
+);
+
+-- Editoras
+INSERT INTO Editoras (Nome, Cidade, País) VALUES
+('Editora A', 'São Paulo', 'Brasil'),
+('Editora B', 'Rio de Janeiro', 'Brasil'),
+('Editora C', 'Lisboa', 'Portugal');
+
+-- Autores
+INSERT INTO Autores (Nome, Nacionalidade, Data_Nascimento) VALUES
+('João Silva', 'Brasileiro', '1975-05-20'),
+('Maria Oliveira', 'Brasileira', '1980-10-15'),
+('Carlos Pereira', 'Português', '1965-12-01');
+
+-- Livros
+INSERT INTO Livros (Título, Gênero, Ano, Preço, ISBN, ID_Editora, ID_Autor) VALUES
+('Aprendendo SQL', 'Tecnologia', 2020, 120.50, '978-1234567890', 1, 1),
+('Histórias de Portugal', 'História', 2018, 89.90, '978-0987654321', 3, 3),
+('Culinária Brasileira', 'Gastronomia', 2022, 75.00, '978-1122334455', 2, 2),
+('Programação Avançada', 'Tecnologia', 2021, 150.00, '978-2233445566', 1, 1),
+('Viagens e Aventuras', 'Ficção', 2019, 60.00, '978-3344556677', 2, 2);
+
+-- Clientes
+INSERT INTO Clientes (Nome, Email, Telefone, Endereço) VALUES
+('Ana Costa', 'ana.costa@email.com', '11999998888', 'Rua das Flores, São Paulo'),
+('Bruno Lima', 'bruno.lima@email.com', '21988887777', 'Avenida Central, Rio de Janeiro'),
+('Carla Mendes', 'carla.mendes@email.com', '31977776666', 'Rua Boa Vista, Belo Horizonte');
+
+-- Vendas
+INSERT INTO Vendas (Data, ID_Cliente, ID_Livro, Quantidade, Total) VALUES
+('2023-01-15', 1, 1, 2, 241.00),
+('2023-02-10', 2, 3, 1, 75.00),
+('2023-03-05', 1, 4, 1, 150.00),
+('2023-03-20', 3, 5, 3, 180.00);
+
+-- Estoque
+INSERT INTO Estoque (ID_Livro, Quantidade, Localização) VALUES
+(1, 10, 'Prateleira A1'),
+(2, 4, 'Prateleira B3'),
+(3, 8, 'Prateleira C2'),
+(4, 2, 'Prateleira A1'),
+(5, 0, 'Prateleira B1');
+
+-- 1. Listar todos os livros ordenados por título.
+SELECT * FROM Livros ORDER BY Título;
+
+-- 2. Buscar livros publicados após um determinado ano (ex: 2015).
+SELECT * FROM Livros WHERE Ano > 2015;
+
+-- 3. Contar quantos livros existem por gênero.
+SELECT Gênero, COUNT(*) AS Quantidade FROM Livros GROUP BY Gênero;
+
+-- 4. Listar os livros mais caros (top 5).
+SELECT * FROM Livros ORDER BY Preço DESC LIMIT 5;
+
+-- 5. Buscar livros por um autor específico (ex: ID_Autor = 2).
+SELECT * FROM Livros WHERE ID_Autor = 2;
+
+-- 6. Listar autores de uma nacionalidade específica (ex: 'Brasileiro').
+SELECT * FROM Autores WHERE Nacionalidade = 'Brasileiro';
+
+-- 7. Buscar autores nascidos antes de um determinado ano (ex: 1970).
+SELECT * FROM Autores WHERE YEAR(Data_Nascimento) < 1970;
+
+-- 8. Contar quantos livros cada autor escreveu.
+SELECT A.ID, A.Nome, COUNT(L.ID) AS Quantidade_Livros
+FROM Autores A
+LEFT JOIN Livros L ON A.ID = L.ID_Autor
+GROUP BY A.ID, A.Nome;
+
+-- 9. Listar autores que não têm livros cadastrados.
+SELECT A.*
+FROM Autores A
+LEFT JOIN Livros L ON A.ID = L.ID_Autor
+WHERE L.ID IS NULL;
+
+-- 10. Buscar autores por parte do nome (ex.: 'Silva').
+SELECT * FROM Autores WHERE Nome LIKE '%Silva%';
+
+
+-- 11. Listar todas as editoras de um determinado país (ex: 'Brasil').
+SELECT * FROM Editoras WHERE País = 'Brasil';
+
+-- 12. Contar quantos livros cada editora publicou.
+SELECT E.ID, E.Nome, COUNT(L.ID) AS Quantidade_Livros
+FROM Editoras E
+LEFT JOIN Livros L ON E.ID = L.ID_Editora
+GROUP BY E.ID, E.Nome;
+
+-- 13. Buscar editoras que publicaram livros em um ano específico (ex: 2020).
+SELECT DISTINCT E.*
+FROM Editoras E
+JOIN Livros L ON E.ID = L.ID_Editora
+WHERE L.Ano = 2020;
+
+-- 14. Listar editoras em ordem alfabética.
+SELECT * FROM Editoras ORDER BY Nome;
+
+-- 15. Verificar se há editoras sem livros cadastrados.
+SELECT E.*
+FROM Editoras E
+LEFT JOIN Livros L ON E.ID = L.ID_Editora
+WHERE L.ID IS NULL;
+
+
+-- 16. Listar clientes ordenados por nome.
+SELECT * FROM Clientes ORDER BY Nome;
+
+-- 17. Buscar clientes que compraram um livro específico (ex: ID_Livro = 5).
+SELECT DISTINCT C.*
+FROM Clientes C
+JOIN Vendas V ON C.ID = V.ID_Cliente
+WHERE V.ID_Livro = 5;
+
+-- 18. Contar quantas compras cada cliente realizou.
+SELECT C.ID, C.Nome, COUNT(V.ID) AS Quantidade_Compras
+FROM Clientes C
+LEFT JOIN Vendas V ON C.ID = V.ID_Cliente
+GROUP BY C.ID, C.Nome;
+
+-- 19. Listar clientes de uma cidade específica (ex: usando LIKE no endereço).
+SELECT * FROM Clientes WHERE Endereço LIKE '%São Paulo%';
+
+-- 20. Verificar clientes que não fizeram nenhuma compra.
+SELECT C.*
+FROM Clientes C
+LEFT JOIN Vendas V ON C.ID = V.ID_Cliente
+WHERE V.ID IS NULL;
+
+-- 21. Listar todas as vendas ordenadas por data (da mais recente).
+SELECT * FROM Vendas ORDER BY Data DESC;
+
+-- 22. Calcular o total de vendas por mês/ano.
+SELECT YEAR(Data) AS Ano, MONTH(Data) AS Mes, SUM(Total) AS Total_Vendas
+FROM Vendas
+GROUP BY Ano, Mes
+ORDER BY Ano, Mes;
+
+-- 23. Buscar a venda com o maior valor total.
+SELECT * FROM Vendas ORDER BY Total DESC LIMIT 1;
+
+-- 24. Listar livros mais vendidos (top 3).
+SELECT L.ID, L.Título, SUM(V.Quantidade) AS Quantidade_Vendida
+FROM Livros L
+JOIN Vendas V ON L.ID = V.ID_Livro
+GROUP BY L.ID, L.Título
+ORDER BY Quantidade_Vendida DESC
+LIMIT 3;
+
+-- 25. Calcular o faturamento total da livraria.
+SELECT SUM(Total) AS Faturamento_Total FROM Vendas;
+
+
+-- 26. Listar livros com estoque abaixo de um limite (ex.: 5 unidades).
+SELECT L.ID, L.Título, E.Quantidade
+FROM Livros L
+JOIN Estoque E ON L.ID = E.ID_Livro
+WHERE E.Quantidade < 5;
+
+-- 27. Verificar quantos livros estão disponíveis em uma localização específica (ex: 'Prateleira 1').
+SELECT COUNT(DISTINCT ID_Livro) AS Livros_Disponiveis
+FROM Estoque
+WHERE Localização = 'Prateleira 1' AND Quantidade > 0;
+
+-- 28. Buscar livros sem estoque (quantidade zero).
+SELECT L.ID, L.Título
+FROM Livros L
+JOIN Estoque E ON L.ID = E.ID_Livro
+WHERE E.Quantidade = 0;
+
+-- 29. Listar livros com maior quantidade em estoque (top 5).                                   
+SELECT L.ID, L.Título, E.Quantidade
+FROM Livros L
+JOIN Estoque E ON L.ID = E.ID_Livro
+ORDER BY E.Quantidade DESC
+LIMIT 5;
+
+-- 30. Verificar se há livros cadastrados sem registro em estoque.
+SELECT L.*
+FROM Livros L
+LEFT JOIN Estoque E ON L.ID = E.ID_Livro
+WHERE E.ID_Livro IS NULL;
+  CREATE DATABASE LivrariaDB;
+USE LivrariaDB;
+
+
+CREATE TABLE Editoras (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(100) NOT NULL,
+    Cidade VARCHAR(50),
+    País VARCHAR(50)
+);
+
+CREATE TABLE Autores (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(100) NOT NULL,
+    Nacionalidade VARCHAR(50),
+    Data_Nascimento DATE
+);
+
+CREATE TABLE Livros (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    Título VARCHAR(150) NOT NULL,
+    Gênero VARCHAR(50),
+    Ano INT,
+    Preço DECIMAL(10,2),
+    ISBN VARCHAR(20),
+    ID_Editora INT,
+    ID_Autor INT,
+    FOREIGN KEY (ID_Editora) REFERENCES Editoras(ID),
+    FOREIGN KEY (ID_Autor) REFERENCES Autores(ID)
+);
+
+CREATE TABLE Clientes (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(100) NOT NULL,
+    Email VARCHAR(100),
+    Telefone VARCHAR(20),
+    Endereço VARCHAR(200)
+);
+
+CREATE TABLE Vendas (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    Data DATE NOT NULL,
+    ID_Cliente INT,
+    ID_Livro INT,
+    Quantidade INT,
+    Total DECIMAL(10,2),
+    FOREIGN KEY (ID_Cliente) REFERENCES Clientes(ID),
+    FOREIGN KEY (ID_Livro) REFERENCES Livros(ID)
+);
+
+CREATE TABLE Estoque (
+    ID_Livro INT PRIMARY KEY,
+    Quantidade INT NOT NULL,
+    Localização VARCHAR(100),
+    FOREIGN KEY (ID_Livro) REFERENCES Livros(ID)
+);
+
+-- Editoras
+INSERT INTO Editoras (Nome, Cidade, País) VALUES
+('Editora A', 'São Paulo', 'Brasil'),
+('Editora B', 'Rio de Janeiro', 'Brasil'),
+('Editora C', 'Lisboa', 'Portugal');
+
+-- Autores
+INSERT INTO Autores (Nome, Nacionalidade, Data_Nascimento) VALUES
+('João Silva', 'Brasileiro', '1975-05-20'),
+('Maria Oliveira', 'Brasileira', '1980-10-15'),
+('Carlos Pereira', 'Português', '1965-12-01');
+
+-- Livros
+INSERT INTO Livros (Título, Gênero, Ano, Preço, ISBN, ID_Editora, ID_Autor) VALUES
+('Aprendendo SQL', 'Tecnologia', 2020, 120.50, '978-1234567890', 1, 1),
+('Histórias de Portugal', 'História', 2018, 89.90, '978-0987654321', 3, 3),
+('Culinária Brasileira', 'Gastronomia', 2022, 75.00, '978-1122334455', 2, 2),
+('Programação Avançada', 'Tecnologia', 2021, 150.00, '978-2233445566', 1, 1),
+('Viagens e Aventuras', 'Ficção', 2019, 60.00, '978-3344556677', 2, 2);
+
+-- Clientes
+INSERT INTO Clientes (Nome, Email, Telefone, Endereço) VALUES
+('Ana Costa', 'ana.costa@email.com', '11999998888', 'Rua das Flores, São Paulo'),
+('Bruno Lima', 'bruno.lima@email.com', '21988887777', 'Avenida Central, Rio de Janeiro'),
+('Carla Mendes', 'carla.mendes@email.com', '31977776666', 'Rua Boa Vista, Belo Horizonte');
+
+-- Vendas
+INSERT INTO Vendas (Data, ID_Cliente, ID_Livro, Quantidade, Total) VALUES
+('2023-01-15', 1, 1, 2, 241.00),
+('2023-02-10', 2, 3, 1, 75.00),
+('2023-03-05', 1, 4, 1, 150.00),
+('2023-03-20', 3, 5, 3, 180.00);
+
+-- Estoque
+INSERT INTO Estoque (ID_Livro, Quantidade, Localização) VALUES
+(1, 10, 'Prateleira A1'),
+(2, 4, 'Prateleira B3'),
+(3, 8, 'Prateleira C2'),
+(4, 2, 'Prateleira A1'),
+(5, 0, 'Prateleira B1');
+
+-- 1. Listar todos os livros ordenados por título.
+SELECT * FROM Livros ORDER BY Título;
+
+-- 2. Buscar livros publicados após um determinado ano (ex: 2015).
+SELECT * FROM Livros WHERE Ano > 2015;
+
+-- 3. Contar quantos livros existem por gênero.
+SELECT Gênero, COUNT(*) AS Quantidade FROM Livros GROUP BY Gênero;
+
+-- 4. Listar os livros mais caros (top 5).
+SELECT * FROM Livros ORDER BY Preço DESC LIMIT 5;
+
+-- 5. Buscar livros por um autor específico (ex: ID_Autor = 2).
+SELECT * FROM Livros WHERE ID_Autor = 2;
+
+-- 6. Listar autores de uma nacionalidade específica (ex: 'Brasileiro').
+SELECT * FROM Autores WHERE Nacionalidade = 'Brasileiro';
+
+-- 7. Buscar autores nascidos antes de um determinado ano (ex: 1970).
+SELECT * FROM Autores WHERE YEAR(Data_Nascimento) < 1970;
+
+-- 8. Contar quantos livros cada autor escreveu.
+SELECT A.ID, A.Nome, COUNT(L.ID) AS Quantidade_Livros
+FROM Autores A
+LEFT JOIN Livros L ON A.ID = L.ID_Autor
+GROUP BY A.ID, A.Nome;
+
+-- 9. Listar autores que não têm livros cadastrados.
+SELECT A.*
+FROM Autores A
+LEFT JOIN Livros L ON A.ID = L.ID_Autor
+WHERE L.ID IS NULL;
+
+-- 10. Buscar autores por parte do nome (ex.: 'Silva').
+SELECT * FROM Autores WHERE Nome LIKE '%Silva%';
+
+
+-- 11. Listar todas as editoras de um determinado país (ex: 'Brasil').
+SELECT * FROM Editoras WHERE País = 'Brasil';
+
+-- 12. Contar quantos livros cada editora publicou.
+SELECT E.ID, E.Nome, COUNT(L.ID) AS Quantidade_Livros
+FROM Editoras E
+LEFT JOIN Livros L ON E.ID = L.ID_Editora
+GROUP BY E.ID, E.Nome;
+
+-- 13. Buscar editoras que publicaram livros em um ano específico (ex: 2020).
+SELECT DISTINCT E.*
+FROM Editoras E
+JOIN Livros L ON E.ID = L.ID_Editora
+WHERE L.Ano = 2020;
+
+-- 14. Listar editoras em ordem alfabética.
+SELECT * FROM Editoras ORDER BY Nome;
+
+-- 15. Verificar se há editoras sem livros cadastrados.
+SELECT E.*
+FROM Editoras E
+LEFT JOIN Livros L ON E.ID = L.ID_Editora
+WHERE L.ID IS NULL;
+
+
+-- 16. Listar clientes ordenados por nome.
+SELECT * FROM Clientes ORDER BY Nome;
+
+-- 17. Buscar clientes que compraram um livro específico (ex: ID_Livro = 5).
+SELECT DISTINCT C.*
+FROM Clientes C
+JOIN Vendas V ON C.ID = V.ID_Cliente
+WHERE V.ID_Livro = 5;
+
+-- 18. Contar quantas compras cada cliente realizou.
+SELECT C.ID, C.Nome, COUNT(V.ID) AS Quantidade_Compras
+FROM Clientes C
+LEFT JOIN Vendas V ON C.ID = V.ID_Cliente
+GROUP BY C.ID, C.Nome;
+
+-- 19. Listar clientes de uma cidade específica (ex: usando LIKE no endereço).
+SELECT * FROM Clientes WHERE Endereço LIKE '%São Paulo%';
+
+-- 20. Verificar clientes que não fizeram nenhuma compra.
+SELECT C.*
+FROM Clientes C
+LEFT JOIN Vendas V ON C.ID = V.ID_Cliente
+WHERE V.ID IS NULL;
+
+-- 21. Listar todas as vendas ordenadas por data (da mais recente).
+SELECT * FROM Vendas ORDER BY Data DESC;
+
+-- 22. Calcular o total de vendas por mês/ano.
+SELECT YEAR(Data) AS Ano, MONTH(Data) AS Mes, SUM(Total) AS Total_Vendas
+FROM Vendas
+GROUP BY Ano, Mes
+ORDER BY Ano, Mes;
+
+-- 23. Buscar a venda com o maior valor total.
+SELECT * FROM Vendas ORDER BY Total DESC LIMIT 1;
+
+-- 24. Listar livros mais vendidos (top 3).
+SELECT L.ID, L.Título, SUM(V.Quantidade) AS Quantidade_Vendida
+FROM Livros L
+JOIN Vendas V ON L.ID = V.ID_Livro
+GROUP BY L.ID, L.Título
+ORDER BY Quantidade_Vendida DESC
+LIMIT 3;
+
+-- 25. Calcular o faturamento total da livraria.
+SELECT SUM(Total) AS Faturamento_Total FROM Vendas;
+
+
+-- 26. Listar livros com estoque abaixo de um limite (ex.: 5 unidades).
+SELECT L.ID, L.Título, E.Quantidade
+FROM Livros L
+JOIN Estoque E ON L.ID = E.ID_Livro
+WHERE E.Quantidade < 5;
+
+-- 27. Verificar quantos livros estão disponíveis em uma localização específica (ex: 'Prateleira 1').
+SELECT COUNT(DISTINCT ID_Livro) AS Livros_Disponiveis
+FROM Estoque
+WHERE Localização = 'Prateleira 1' AND Quantidade > 0;
+
+-- 28. Buscar livros sem estoque (quantidade zero).
+SELECT L.ID, L.Título
+FROM Livros L
+JOIN Estoque E ON L.ID = E.ID_Livro
+WHERE E.Quantidade = 0;
+
+-- 29. Listar livros com maior quantidade em estoque (top 5).                                   
+SELECT L.ID, L.Título, E.Quantidade
+FROM Livros L
+JOIN Estoque E ON L.ID = E.ID_Livro
+ORDER BY E.Quantidade DESC
+LIMIT 5;
+
+-- 30. Verificar se há livros cadastrados sem registro em estoque.
+SELECT L.*
+FROM Livros L
+LEFT JOIN Estoque E ON L.ID = E.ID_Livro
+WHERE E.ID_Livro IS NULL;
